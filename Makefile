@@ -7,15 +7,15 @@ SRC     := src
 INC     := include
 TEST    := tests
 
-PROD_SRCS := $(SRC)/main.c $(SRC)/board.c
-TEST_SRCS := $(TEST)/test_board.c
+PROD_SRCS := $(SRC)/Ch7.c $(SRC)/bitarray.c
+TEST_SRCS := $(TEST)/test_cryptopals.c
 
-PROD_BIN  := Chess
-TEST_BIN  := Test_Chess
+PROD_BIN  := Ch7
+TEST_BIN  := test_cryptopals
 
 .PHONY: all production test run-tests clean
 
-all: production test run-tests
+all: production 
 
 # Build production executable
 
@@ -26,10 +26,10 @@ production: $(PROD_SRCS)
 
 # Build test runner (includes math_utils.c + test file)
 
-test: $(SRC)/board.c $(TEST_SRCS)
+test: $(PROD_SRCS) $(TEST_SRCS)
 	$(CC) $(CFLAGS) $^ -o $(TEST_BIN)
 
-# Note: $^ stands for the names of the prerequisites separated by spaces. In this case $(SRC)/math_utils.c $(TEST_SRCS)
+# Note: $^ stands for the names of the prerequisites separated by spaces.
 
 # Alias to compile & immediately run tests
 

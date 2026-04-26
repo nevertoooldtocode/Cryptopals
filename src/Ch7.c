@@ -1,22 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include "bitarray.h"
 
 #define ALPHABETSIZE 26
 #define WORSTINDICATOR 999999999
 #define ROTL8(x,shift) ((unsigned char) ((x) << (shift)) | ((x) >> (8 - (shift))))
 
-typedef struct bitarray {
-    long len;
-    unsigned char byte[]; // this is the "struct hack", only one malloc needed for the struct
-} bitarray;
-
 typedef long histogram[ALPHABETSIZE];
 // To store the frequency of the 26 letters of the alphabet in a text
 
-const char HEXALPHABET[16] = "0123456789abcdef";
-const char B64ALPHABET[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const histogram ENGFREQ1000 = {81,13,39,39,115,24,18,38,67,1,4,42,35,77,78,24,1,68,67,90,29,6,12,5,13,1};
 // Contains average frequency of the 26 letters of the alphabet in an English technical text
 
@@ -84,152 +77,12 @@ unsigned char gmul(unsigned char a, unsigned char b) {
     return res;
 }
 
-unsigned char hexnumvalue(char hexchar) {
-    //assumes a clean hexchar
-    unsigned char i;
-    for (i = 0; i < 16; i++) {
-        if (hexchar == HEXALPHABET[i]) break;
-    }
-    return i;
-}
-
-unsigned char b64numvalue(char b64char) {
-    // assumes a clean b64char
-    unsigned char i;
-    for (i = 0; i < 64; i++) {
-        if (b64char == B64ALPHABET[i]) break;
-    }
-    return i;
-}
-
 unsigned char invsbox(unsigned char sboxchar) {
     long i;
     for (i = 0; i < 256; i++) {
         if (sboxchar == SBOX[i]) break;
     }
     return i;
-}
-
-long balen (bitarray *ba) {
-    return ba->len;
-}
-
-void printascii(bitarray *ba) {
-    long i;
-    printf("ascii: ");
-    for (i = 0; i < balen(ba); i++) {
-        if (ba->byte[i] >= 32 && ba->byte[i] <= 126) printf("%c", ba->byte[i]);
-        else printf(" ");
-//      else printf("'\\%d'", ba->byte[i]);
-    }
-    printf("\n");
-}
-
-void printhex(bitarray *ba) {
-    long i;
-    printf("hex: ");
-    for (i = 0; i < balen(ba); i++) printf("%02x", ba->byte[i]);
-    printf("\n");
-}
-
-void print64(bitarray *ba) {
-    long i, j, res;
-    printf("B64: ");
-    for (i = 0; i < balen(ba) * 8; i += 6) {
-        res = 0;
-        for (j = 0; j < 6; j++) {
-            res <<= 1;
-            res += (ba->byte[(i + j) / 8] >> (7 - (i + j) % 8) & 1);
-        }
-        printf("%c", B64ALPHABET[res]);
-    }
-    printf("\n");
-}
-
-void printall(bitarray *ba) {
-    printf("length = %ld\n", balen(ba));
-    printhex(ba);
-    printascii(ba);
-    print64(ba);
-}
-
-bitarray *new_ba(long bytearraylength) {
-    long i;
-    bitarray *res = malloc(sizeof(bitarray) + bytearraylength); // Only a single malloc needed because of the "struct hack"
-    res->len = bytearraylength;
-    for (i = 0; i < res->len; i++) res->byte[i] = 0;
-    return res;
-}
-
-void destroy_ba(bitarray *ba) {
-    free(ba); // Still enough because of the struct hack
-}
-
-bitarray *create_ba_from_hex(char *hexstr) {
-    // Assumes a clean hexstring, no line feeds
-    long i;
-    bitarray *res = new_ba(strlen(hexstr) / 2);
-    for (i = 0; i < balen(res); i++) {
-        res->byte[i] = hexnumvalue(hexstr[2*i]) * 16 + hexnumvalue(hexstr[2*i + 1]);
-    }
-    return res;
-}
-
-bitarray *create_ba_from_64(char *b64str) {
-    // Assumes a clean b64string, no line feeds
-    long i, leftshift, rightshift;
-    bitarray *res = new_ba(((strlen(b64str) - 1) * 3 / 4) + 1);
-    for (i = 0; i < balen(res) - 1; i++) {
-        leftshift = ((i * 2 + 2) % 6); if (leftshift == 0) leftshift = 6;
-        rightshift = (6 - ((i * 2 + 2) % 6)); if (rightshift == 6) rightshift = 0;
-        res->byte[i] = (b64numvalue(b64str[i * 4 / 3]) << leftshift) + (b64numvalue(b64str[i * 4 / 3 + 1]) >> rightshift);
-    }
-    leftshift = ((i * 2 + 2) % 6); if (leftshift == 0) leftshift = 6;
-    rightshift = (6 - ((i * 2 + 2) % 6)); if (rightshift == 6) rightshift = 0;
-    res->byte[i] = (b64numvalue(b64str[i * 4 / 3]) << leftshift) + (b64numvalue(b64str[i * 4 / 3 + 1]) >> rightshift);
-    return res;
-}
-
-bitarray *create_ba_from_ascii(char *str) {
-    long i;
-    bitarray *res = new_ba(strlen(str));
-    for (i = 0; i < balen(res); i++) {
-        res->byte[i] = str[i];
-    }
-    return res;
-}
-
-void update_ba_from_hex(bitarray *ba, char *hexstr) {
-    long i;
-    for (i = 0; i < balen(ba); i++) {
-        ba->byte[i] = hexnumvalue(hexstr[2*i]) * 16 + hexnumvalue(hexstr[2*i + 1]);
-    }
-}
-
-void update_ba_from_ascii(bitarray *ba, char *str) {
-    long i;
-    for (i = 0; i < balen(ba); i++) {
-        ba->byte[i] = str[i];
-    }
-}
-
-void bacopy(bitarray *dest, bitarray *src) {
-    long i;
-    dest->len = src->len;
-    for (i = 0; i < balen(src); i++) {
-        dest->byte[i] = src->byte[i];
-    }
-}
-
-int isequalba(bitarray *ba1, bitarray *ba2) {
-    long i;
-    if (balen(ba1) == balen(ba2)) {
-        for (i = 0; i < balen(ba1); i++) {
-            if (ba1->byte[i] != ba2-> byte[i]) return 0;
-        }
-        return 1;
-    }
-    return 0;
 }
 
 long sumbits(char c) {
@@ -246,16 +99,6 @@ long hamming(bitarray *ba1, bitarray *ba2) {
         res += sumbits(ba1->byte[i] ^  ba2->byte[i]);
     }
     return res;
-}
-
-void xor(bitarray *res, bitarray *ba1, bitarray *ba2) {
-    // ba1 should be larger or equal to ba2
-    // If ba2 is shorter than ba1, xor is continued with the first byte of ba2
-    // res should be created before calling this function, and with length equal to ba1
-    long i;
-    for (i = 0; i < balen(res); i++) {
-        res->byte[i] = ba1->byte[i] ^ ba2->byte[i % ba2->len];
-    }
 }
 
 void charxor(bitarray *res, bitarray *ba, unsigned char key) {
@@ -304,39 +147,7 @@ long hamdist(bitarray *ba, long keysize) {
     return res * 1000 / keysize;
 }
 
-void assertall() {
-    bitarray *ba1 = create_ba_from_hex("1234abcd");
-    bitarray *ba2 = create_ba_from_hex("567890ef");
-    bitarray *ba3 = new_ba(balen(ba1));
-    bacopy(ba3, ba1);
-    bitarray *resxor = new_ba(balen(ba1));
-    xor(resxor, ba1, ba2);
-    bitarray *resxorcompare = create_ba_from_hex("444c3b22");
-    long key = 0, ind = 0;
-    findcharxorkey(ba1, &key, &ind);
 
-    assert(gmul(0xff, 9) == 0x46);
-    assert(gmul(0xff, 11) == 0xa3);
-    assert(gmul(0xff, 13) == 0x97);
-    assert(gmul(13, 0xff) == 0x97);
-    assert(gmul(0xff, 14) == 0x8d);
-    assert(invsbox(0x84) == 0x4f);
-    assert(ROTL8(0x80,1) == 1);
-    assert(key == 64 && ind == 415855);
-    assert(hexnumvalue('a') == 10);
-    assert(b64numvalue('a') == 26);
-    assert(balen(ba1) == 4);
-    assert(resxor->byte[0] == 0x44);
-    assert(isequalba(ba3, ba1));
-    assert(isequalba(resxor, resxorcompare));
-    assert(isequalba(create_ba_from_hex("ab"), create_ba_from_hex("ab"))); // this works, but is I think a memory leak?
-    assert(hamming(create_ba_from_ascii("this is a test"), create_ba_from_ascii("wokka wokka!!!")) == 37);
-    assert(englishindicator(create_ba_from_ascii("hallo world, this is english!")) == 81004);
-    destroy_ba(ba1);
-    destroy_ba(ba2);
-    destroy_ba(resxor);
-    destroy_ba(resxorcompare);
-}
 
 void extract_block(bitarray *block, bitarray *ba, long offset){
     long i;
@@ -414,19 +225,17 @@ void decrypt_aes_block(bitarray *resblock, bitarray *block, bitarray **roundkey)
     long round;
     bacopy(resblock, block);
     for (round = 10; round > 0; round--) { // decrypt, dus we tellen terug
-        xor(resblock, resblock, roundkey[round]);
+        baxor(resblock, resblock, roundkey[round]);
         //printf("decrypt xor with key: "); printhex(roundkey[round]);
         if (round < 10 ) invmixcolumns(resblock); //Only skipped in the final round
         invshiftrows(resblock);
         invsubbytes(resblock);
     }
-    xor(resblock, resblock, roundkey[0]); // round should be 0 here
+    baxor(resblock, resblock, roundkey[0]); // round should be 0 here
 
 }
 
 int main(int argc, char **argv) {
-
-    assertall();
 
     FILE *stream;
     char *buf = NULL;
@@ -444,7 +253,7 @@ int main(int argc, char **argv) {
     fread(buf, 1,size, stream);
     buf[size] = '\0';
     if (buf[size -1] == '\n') buf[size - 1] = '\0'; //get rid of linefeed added by vim
-    printf("buf size: %d\n", strlen(buf));
+    printf("buf size: %ld\n", strlen(buf));
 
     ba = create_ba_from_64(buf);
     printall(ba);
