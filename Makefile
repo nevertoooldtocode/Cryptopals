@@ -7,7 +7,8 @@ SRC     := src
 INC     := include
 TEST    := tests
 
-PROD_SRCS := $(SRC)/Ch7.c $(SRC)/bitarray.c
+SUPPORT_SRCS := $(SRC)/bitarray.c
+PROD_SRCS := $(SRC)/Ch7.c $(SUPPORT_SRCS)
 TEST_SRCS := $(TEST)/test_cryptopals.c
 
 PROD_BIN  := Ch7
@@ -24,14 +25,8 @@ production: $(PROD_SRCS)
 
 # Note: $^ stands for the names of the prerequisites separated by spaces. In this case $(PROD_SRCS)
 
-# Build test runner (includes math_utils.c + test file)
-
-test: $(PROD_SRCS) $(TEST_SRCS)
+test: $(SUPPORT_SRCS) $(TEST_SRCS)
 	$(CC) $(CFLAGS) $^ -o $(TEST_BIN)
-
-# Note: $^ stands for the names of the prerequisites separated by spaces.
-
-# Alias to compile & immediately run tests
 
 run-tests: test
 	./$(TEST_BIN)

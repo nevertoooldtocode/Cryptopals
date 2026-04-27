@@ -3,6 +3,9 @@
 #ifndef BITARRAY_H
 #define BITARRAY_H
 
+extern const char HEXALPHABET[16];
+extern const char B64ALPHABET[64];
+
 typedef struct bitarray {
     long len;
     unsigned char byte[]; // this is the "struct hack", only one malloc needed for the struct

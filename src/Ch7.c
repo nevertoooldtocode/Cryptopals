@@ -3,16 +3,6 @@
 #include <string.h>
 #include "bitarray.h"
 
-#define ALPHABETSIZE 26
-#define WORSTINDICATOR 999999999
-#define ROTL8(x,shift) ((unsigned char) ((x) << (shift)) | ((x) >> (8 - (shift))))
-
-typedef long histogram[ALPHABETSIZE];
-// To store the frequency of the 26 letters of the alphabet in a text
-
-const histogram ENGFREQ1000 = {81,13,39,39,115,24,18,38,67,1,4,42,35,77,78,24,1,68,67,90,29,6,12,5,13,1};
-// Contains average frequency of the 26 letters of the alphabet in an English technical text
-
 const unsigned char SBOX[256] = {  // Rijndael S-box
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
@@ -33,35 +23,6 @@ const unsigned char SBOX[256] = {  // Rijndael S-box
 
 const unsigned char RCON[11] = {0, 0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
 //AES Key schedule Round Constants for rounds 1-10. RCON[0] is a dummy.
-
-void printhisto(histogram his) {
-    long i;
-    printf("histogram: {");
-    for (i = 0; i < ALPHABETSIZE; i++) printf("%ld, ", his[i]);
-    printf("}\n");
-}
-
-long englishindicator(bitarray *ba) {
-    // The smaller the sum, the closer the character disctribution is to ENGFREQ1000
-    long i, res = 0, sum = 0, penalty = 0;
-    histogram histo;
-    for(i = 0; i < ALPHABETSIZE; i++) histo[i] = 0;
-    for (i = 0; i < ba->len; i++) {
-        if (ba->byte[i] >= 65 && ba->byte[i] <= 90) histo[ba->byte[i] - 65] += 1; // Hoofdletters
-        else if (ba->byte[i] >= 97 && ba->byte[i] <= 122) histo[ba->byte[i] - 97] += 1; // Kleine letters
-        else penalty += 5000; // Any byte not in the alphabet incurs a penalty
-    }
-    for (i = 0; i < ALPHABETSIZE; i++) sum += histo[i];
-    if (sum == 0) {
-        res = WORSTINDICATOR;
-    }
-    else {
-       for (i = 0; i < ALPHABETSIZE; i++) {
-           res += ((histo[i] * 1000 / sum) - ENGFREQ1000[i]) * ((histo[i] * 1000 / sum) - ENGFREQ1000[i]);
-       }
-    }
-    return res + penalty;
-}
 
 unsigned char gmul(unsigned char a, unsigned char b) {
     // Galois Field (256) multiplication of 2 bytes
@@ -84,70 +45,6 @@ unsigned char invsbox(unsigned char sboxchar) {
     }
     return i;
 }
-
-long sumbits(char c) {
-    long i, res = 0;
-    for (i = 0; i < 8; i++) {
-        res += (c >> i) & 1;
-    }
-    return res;
-}
-
-long hamming(bitarray *ba1, bitarray *ba2) {
-    long i, res = 0;
-    for (i = 0; i < balen(ba1); i++) {
-        res += sumbits(ba1->byte[i] ^  ba2->byte[i]);
-    }
-    return res;
-}
-
-void charxor(bitarray *res, bitarray *ba, unsigned char key) {
-    long i;
-    for (i = 0; i < balen(res); i++) {
-    res->byte[i] = ba->byte[i] ^ key;
-    }
-}
-
-void findcharxorkey(bitarray *ba, long *minkey, long *minind) {
-    // Tries all 256 byte-values as key for repeated xor in the bitarray
-    // minkey will contain the key that produces the lowest englishindicator,
-    // minind will contain the value of that indicator
-    long j, ind, key;
-    *minkey = 0;
-    *minind = WORSTINDICATOR;
-    bitarray *tempres = new_ba(balen(ba));
-    bitarray *res = new_ba(balen(ba));
-    for (key = 0; key < 256; key++) {
-        charxor(tempres, ba, key);
-        ind = englishindicator(tempres);
-        if (*minind > ind) {
-            *minkey = key;
-            *minind = ind;
-            for (j = 0; j < balen(res); j++) {
-                res->byte[j] = tempres->byte[j];
-            }
-        }
-    //printf("key = %ld, minkey = %ld, min = %ld, cur = %ld\n", key, minkey, min, cur);
-    }
-    //printf("Solution key = %c, english indicator = %ld, solution: ", (char)minkey, min);
-    //printascii(res);
-    destroy_ba(res);
-    destroy_ba(tempres);
-}
-
-long hamdist(bitarray *ba, long keysize) {
-    // Returns the normalized hamming distance between the first *blocknumber* consecutive pairs of length *keysize*
-    // A low value is an indication that simple xor encryption was done with a key of keysize length
-    long i, res = 0, blocknumber = 0;
-    for (blocknumber = 0; blocknumber < 20; blocknumber++) {
-        for (i = 0; i < keysize; i++) {
-            res += sumbits(ba->byte[2 * blocknumber * keysize + i] ^  ba->byte[(2 * blocknumber + 1) * keysize + i]);
-        }
-    }
-    return res * 1000 / keysize;
-}
-
-
 
 void extract_block(bitarray *block, bitarray *ba, long offset){
     long i;
@@ -250,7 +147,7 @@ int main(int argc, char **argv) {
     size = ftell(stream);
     buf = malloc(size+1);
     rewind(stream);
-    fread(buf, 1,size, stream);
+    fread(buf, 1,size, stream); // Requires an input file without Linefeeds
     buf[size] = '\0';
     if (buf[size -1] == '\n') buf[size - 1] = '\0'; //get rid of linefeed added by vim
     printf("buf size: %ld\n", strlen(buf));
