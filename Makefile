@@ -6,13 +6,15 @@ CFLAGS  := -Iinclude -Wall -Wextra
 SRC     := src
 INC     := include
 TEST    := tests
+BIN	:= bin
+ARGS	:= 7.txt
 
 SUPPORT_SRCS := $(SRC)/bitarray.c
 PROD_SRCS := $(SRC)/Ch7.c $(SUPPORT_SRCS)
 TEST_SRCS := $(TEST)/test_cryptopals.c
 
-PROD_BIN  := Ch7
-TEST_BIN  := test_cryptopals
+PROD_BIN  := $(BIN)/Ch7
+TEST_BIN  := $(BIN)/test_cryptopals
 
 .PHONY: all production test run-tests clean
 
@@ -31,8 +33,9 @@ test: $(SUPPORT_SRCS) $(TEST_SRCS)
 run-tests: test
 	./$(TEST_BIN)
 
-run: production
-	./$(PROD_BIN)
+run: production test
+	./$(TEST_BIN)
+	./$(PROD_BIN) $(ARGS)
 
 clean:
 	rm -f $(PROD_BIN) $(TEST_BIN)

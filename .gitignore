@@ -1,7 +1,6 @@
-Ch6
-Ch7
-*swp
-*~
+bin/
+tags
+
 # Prerequisites
 *.d
 

@@ -95,14 +95,11 @@ bitarray* create_ba_from_64(char *b64str) {
     // Assumes a clean b64string, no line feeds
     long i, leftshift, rightshift;
     bitarray* res = new_ba(((strlen(b64str) - 1) * 3 / 4) + 1);
-    for (i = 0; i < balen(res) - 1; i++) {
+    for (i = 0; i < balen(res); i++) {
         leftshift = ((i * 2 + 2) % 6); if (leftshift == 0) leftshift = 6;
         rightshift = (6 - ((i * 2 + 2) % 6)); if (rightshift == 6) rightshift = 0;
         res->byte[i] = (b64numvalue(b64str[i * 4 / 3]) << leftshift) + (b64numvalue(b64str[i * 4 / 3 + 1]) >> rightshift);
     }
-    leftshift = ((i * 2 + 2) % 6); if (leftshift == 0) leftshift = 6;
-    rightshift = (6 - ((i * 2 + 2) % 6)); if (rightshift == 6) rightshift = 0;
-    res->byte[i] = (b64numvalue(b64str[i * 4 / 3]) << leftshift) + (b64numvalue(b64str[i * 4 / 3 + 1]) >> rightshift);
     return res;
 }
 

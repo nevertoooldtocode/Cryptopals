@@ -63,7 +63,7 @@ void generate_roundkey(bitarray **rk, bitarray *key) {
     // Length of both *key and **rk is 16
     long i, r;
     bacopy(rk[0], key);
-    printf("round %d, roundkey: ", 0); printhex(rk[0]);
+    //printf("round %d, roundkey: ", 0); printhex(rk[0]);
     for (r = 1; r < 11; r++) {
         rk[r]->byte[0] = rk[r - 1]->byte[0] ^ SBOX[rk[r - 1]->byte[13]] ^ RCON[r];
         rk[r]->byte[1] = rk[r - 1]->byte[1] ^ SBOX[rk[r - 1]->byte[14]];
@@ -72,7 +72,7 @@ void generate_roundkey(bitarray **rk, bitarray *key) {
         for (i = 4; i < 16; i++) {
             rk[r]->byte[i] = rk[r - 1]->byte[i] ^ rk[r]->byte[i - 4];
         }
-        printf("round %ld, roundkey: ", r); printhex(rk[r]);
+        //printf("round %ld, roundkey: ", r); printhex(rk[r]);
     }
 }
 
@@ -150,10 +150,10 @@ int main(int argc, char **argv) {
     fread(buf, 1,size, stream); // Requires an input file without Linefeeds
     buf[size] = '\0';
     if (buf[size -1] == '\n') buf[size - 1] = '\0'; //get rid of linefeed added by vim
-    printf("buf size: %ld\n", strlen(buf));
+    //printf("buf size: %ld\n", strlen(buf));
 
     ba = create_ba_from_64(buf);
-    printall(ba);
+    //printall(ba);
     free(buf);
     fclose(stream);
 
