@@ -8,62 +8,8 @@
 const char HEXALPHABET[16] = "0123456789abcdef";
 const char B64ALPHABET[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-long balen (bitarray* ba) {
-    return ba->len;
-}
-
-void printascii(bitarray* ba) {
-    long i;
-    printf("ascii: ");
-    for (i = 0; i < balen(ba); i++) {
-        if (ba->byte[i] >= 32 && ba->byte[i] <= 126) printf("%c", ba->byte[i]);
-        else printf(" ");
-//      else printf("'\\%d'", ba->byte[i]);
-    }
-    printf("\n");
-}
-
-void printhex(bitarray* ba) {
-    long i;
-    printf("hex: ");
-    for (i = 0; i < balen(ba); i++) printf("%02x", ba->byte[i]);
-    printf("\n");
-}
-
-void print64(bitarray* ba) {
-    long i, j, res;
-    printf("B64: ");
-    for (i = 0; i < balen(ba) * 8; i += 6) {
-        res = 0;
-        for (j = 0; j < 6; j++) {
-            res <<= 1;
-            res += (ba->byte[(i + j) / 8] >> (7 - (i + j) % 8) & 1);
-        }
-        printf("%c", B64ALPHABET[res]);
-    }
-    printf("\n");
-}
-
-void printall(bitarray* ba) {
-    printf("length = %ld\n", balen(ba));
-    printhex(ba);
-    printascii(ba);
-    print64(ba);
-}
-
-bitarray* new_ba(long bytearraylength) {
-    long i;
-    bitarray* res = malloc(sizeof(bitarray) + bytearraylength); // Only a single malloc needed because of the "struct hack"
-    res->len = bytearraylength;
-    for (i = 0; i < res->len; i++) res->byte[i] = 0;
-    return res;
-}
-
-void destroy_ba(bitarray* ba) {
-    free(ba); // Still enough because of the struct hack
-}
-
-unsigned char hexnumvalue(char hexchar) {
+//Helper functions
+static unsigned char hexnumvalue(char hexchar) {
     //assumes a clean hexchar
     unsigned char i;
     for (i = 0; i < 16; i++) {
@@ -72,13 +18,22 @@ unsigned char hexnumvalue(char hexchar) {
     return i;
 }
 
-unsigned char b64numvalue(char b64char) {
+static unsigned char b64numvalue(char b64char) {
     // assumes a clean b64char
     unsigned char i;
     for (i = 0; i < 64; i++) {
         if (b64char == B64ALPHABET[i]) break;
     }
     return i;
+}
+
+//Creation
+bitarray* new_ba(long bytearraylength) {
+    long i;
+    bitarray* res = malloc(sizeof(bitarray) + bytearraylength); // Only a single malloc needed because of the "struct hack"
+    res->len = bytearraylength;
+    for (i = 0; i < res->len; i++) res->byte[i] = 0;
+    return res;
 }
 
 bitarray* create_ba_from_hex(char* hexstr) {
@@ -112,6 +67,12 @@ bitarray* create_ba_from_ascii(char*str) {
     return res;
 }
 
+//Destruction
+void destroy_ba(bitarray* ba) {
+    free(ba); // Still enough because of the struct hack
+}
+
+//Update
 void update_ba_from_hex(bitarray* ba, char* hexstr) {
     long i;
     for (i = 0; i < balen(ba); i++) {
@@ -126,6 +87,12 @@ void update_ba_from_ascii(bitarray* ba, char* str) {
     }
 }
 
+//Array length
+long balen (bitarray* ba) {
+    return ba->len;
+}
+
+//Copy
 void bacopy(bitarray* dest, bitarray* src) {
     long i;
     dest->len = src->len;
@@ -134,6 +101,7 @@ void bacopy(bitarray* dest, bitarray* src) {
     }
 }
 
+//Compare
 int isequalba(bitarray* ba1, bitarray* ba2) {
     long i;
     if (balen(ba1) == balen(ba2)) {
@@ -145,6 +113,7 @@ int isequalba(bitarray* ba1, bitarray* ba2) {
     return 0;
 }
 
+//XOR
 void baxor(bitarray *res, bitarray *ba1, bitarray *ba2) {
     // ba1 should be larger or equal to ba2
     // If ba2 is shorter than ba1, xor is continued with the first byte of ba2
@@ -154,4 +123,44 @@ void baxor(bitarray *res, bitarray *ba1, bitarray *ba2) {
         res->byte[i] = ba1->byte[i] ^ ba2->byte[i % ba2->len];
     }
 }
+
+//Printing functions
+void printascii(bitarray* ba) {
+    long i;
+    printf("ascii: ");
+    for (i = 0; i < balen(ba); i++) {
+        if (ba->byte[i] >= 32 && ba->byte[i] <= 126) printf("%c", ba->byte[i]);
+        else printf(" ");
+    }
+    printf("\n");
+}
+
+void printhex(bitarray* ba) {
+    long i;
+    printf("hex: ");
+    for (i = 0; i < balen(ba); i++) printf("%02x", ba->byte[i]);
+    printf("\n");
+}
+
+void print64(bitarray* ba) {
+    long i, j, res;
+    printf("B64: ");
+    for (i = 0; i < balen(ba) * 8; i += 6) {
+        res = 0;
+        for (j = 0; j < 6; j++) {
+            res <<= 1;
+            res += (ba->byte[(i + j) / 8] >> (7 - (i + j) % 8) & 1);
+        }
+        printf("%c", B64ALPHABET[res]);
+    }
+    printf("\n");
+}
+
+void printall(bitarray* ba) {
+    printf("length = %ld\n", balen(ba));
+    printhex(ba);
+    printascii(ba);
+    print64(ba);
+}
+
 
