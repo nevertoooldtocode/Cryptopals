@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     key = create_ba_from_ascii("YELLOW SUBMARINE");
     res = new_ba(balen(ba));
 
-    decrypt_aes(res, ba, key);
+    decrypt_aes_ecb(res, ba, key);
 
     printf("Result: \n"); printascii(res);
 
