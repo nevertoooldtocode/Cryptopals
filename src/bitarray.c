@@ -1,4 +1,6 @@
 // src/bitarray.c
+//
+// Array plus associated length in one stucture
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -9,7 +9,7 @@ TEST    := tests
 BIN	:= bin
 ARGS	:= 7.txt
 
-SUPPORT_SRCS := $(SRC)/bitarray.c
+SUPPORT_SRCS := $(SRC)/bitarray.c $(SRC)/aes.c
 PROD_SRCS := $(SRC)/Ch7.c $(SUPPORT_SRCS)
 TEST_SRCS := $(TEST)/test_cryptopals.c
 
@@ -43,6 +43,5 @@ clean:
 # Usage:
 # 
 # $ make               # builds both math_app and test_runner
-# $ ./math_app         # runs production app (if main.c exists)
 # $ make run-tests     # builds & runs all unit tests
 # $ make clean         # remove binaries
