@@ -132,7 +132,7 @@ static void decrypt_aes_block(bitarray *resblock, bitarray *block, bitarray **ro
 
 }
 
-void decrypt_aes(bitarray* res, bitarray* ba, bitarray* key) {
+void decrypt_aes_ecb(bitarray* res, bitarray* ba, bitarray* key) {
     bitarray *block = NULL, *resblock = NULL;
     long i = 0, offset = 0, round = 0;
     bitarray *roundkey[11]; // Initialize roundkey array
@@ -159,6 +159,6 @@ void decrypt_aes(bitarray* res, bitarray* ba, bitarray* key) {
     destroy_ba(resblock);
 }
 /*
-void encrypt_aes(bitarray* res, bitarray* ba, bitarray* key) {
+void encrypt_aes_ecb(bitarray* res, bitarray* ba, bitarray* key) {
 }
 */

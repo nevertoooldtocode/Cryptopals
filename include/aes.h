@@ -7,6 +7,6 @@
 
 unsigned char gmul(unsigned char a, unsigned char b); 
 
-void encrypt_aes(bitarray* res, bitarray* ba, bitarray* key);
-void decrypt_aes(bitarray* res, bitarray* ba, bitarray* key);
+void encrypt_aes_ecb(bitarray* res, bitarray* ba, bitarray* key);
+void decrypt_aes_ecb(bitarray* res, bitarray* ba, bitarray* key);
 #endif
