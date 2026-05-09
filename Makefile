@@ -7,13 +7,13 @@ SRC     := src
 INC     := include
 TEST    := tests
 BIN	:= bin
-ARGS	:= 7.txt
+ARGS	:= 6.txt
 
 SUPPORT_SRCS := $(SRC)/bitarray.c $(SRC)/aes.c
-PROD_SRCS := $(SRC)/Ch7.c $(SUPPORT_SRCS)
+PROD_SRCS := $(SRC)/Ch6.c $(SUPPORT_SRCS)
 TEST_SRCS := $(TEST)/test_cryptopals.c
 
-PROD_BIN  := $(BIN)/Ch7
+PROD_BIN  := $(BIN)/Ch6
 TEST_BIN  := $(BIN)/test_cryptopals
 
 .PHONY: all production test run-tests clean
