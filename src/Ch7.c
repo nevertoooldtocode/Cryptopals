@@ -4,28 +4,35 @@
 #include "bitarray.h"
 #include "aes.h"
 
-
-
-int main(int argc, char **argv) {
-
-    FILE *stream;
+char* string_from_file(char* filename) {
     char *buf = NULL;
     size_t size = 0;
+    int c = 0, i = 0;
+    FILE* fp = fopen(filename, "rb");
+    fseek(fp, 0L, SEEK_END);
+    size = ftell(fp);
+    buf = malloc(size + 1);
+    rewind(fp);
+    while ((c = fgetc(fp)) != EOF) {
+	if (c != '\n' && c != '\r') 
+	    buf[i++] = (char) c;
+    }
+    buf[i] = '\0';
+    fclose(fp);
+    return buf;
+}
+
+int main(int argc, char **argv) {
+    char* buf = NULL;
     bitarray *ba = NULL, *res = NULL, *key = NULL;
 
-    stream = (argc == 1) ? stdin : fopen(argv[1], "rb");
-
-    fseek(stream, 0L, SEEK_END);
-    size = ftell(stream);
-    buf = malloc(size+1);
-    rewind(stream);
-    fread(buf, 1,size, stream); // Requires an input file without Linefeeds
-    buf[size] = '\0';
-    if (buf[size -1] == '\n') buf[size - 1] = '\0'; //get rid of linefeed added by vim
+    if (argc != 2) {
+	fprintf(stderr, "usage: %s <filename>\n", argv[0]);
+	exit(1);
+    }
+    buf = string_from_file(argv[1]);
     ba = create_ba_from_64(buf);
     free(buf);
-    fclose(stream);
-
 
     key = create_ba_from_ascii("YELLOW SUBMARINE");
     res = new_ba(balen(ba));
