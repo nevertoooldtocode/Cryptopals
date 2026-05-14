@@ -1,4 +1,7 @@
 // include/bitarray.h
+//
+// Data structure bitarray, a simple array of bytes + length.
+// Plus supporting functions
 
 #ifndef BITARRAY_H
 #define BITARRAY_H

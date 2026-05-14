@@ -1,4 +1,7 @@
 // src/aes.c
+//
+// AES-128 encrypting and decrypting
+// To do: encrypting
 
 #include <stddef.h>
 #include "aes.h"

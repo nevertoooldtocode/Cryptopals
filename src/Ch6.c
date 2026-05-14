@@ -1,3 +1,11 @@
+// src/Ch6.c
+//
+// This is Cryptopals Challenge 6 from Set 1
+// Break repeating-key XOR
+//
+// To do: put English functions in separate module
+// Include histogram generating somewhere
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +29,7 @@ void printhisto(histogram his) {
 }
 
 long englishindicator(bitarray *ba) {
+    // Uses least square method comparing the argument to average English character frequency
     // The smaller the sum, the closer the character disctribution is to ENGFREQ1000
     long i, res = 0, sum = 0, penalty = 0;
     histogram histo;
@@ -51,6 +60,8 @@ long sumbits(char c) {
 }
 
 long hamming(bitarray *ba1, bitarray *ba2) {
+    // Computes the Hamming distance between the arguments
+    // Hamming distance is the number of differing bits
     long i, res = 0;
     for (i = 0; i < balen(ba1); i++) {
         res += sumbits(ba1->byte[i] ^  ba2->byte[i]);

@@ -1,4 +1,6 @@
 // include/aes.h
+//
+// AES128 encryption, using the bitarray data structure
 
 #ifndef AES_H
 #define AES_H

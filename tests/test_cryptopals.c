@@ -1,4 +1,6 @@
 // tests/test_cryptopals.c
+//
+// Performs tests for the Cryptopal Challenges project
 
 #include <assert.h>
 #include "bitarray.h"

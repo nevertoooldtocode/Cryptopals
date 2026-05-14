@@ -1,3 +1,8 @@
+// src/Ch7.c
+//
+// This is Challenge 7 of Set 1 of Cryptopals
+// Decode a file with AES-128 in ECB mode with a known key
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
